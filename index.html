@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cronômetro com Motivo e Resumo</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -16,17 +15,15 @@
     body {
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: center;
       height: 100vh;
       background-color: #f3f4f6;
-      overflow: auto;
     }
 
     .container {
       max-width: 600px;
       width: 100%;
       padding: 20px;
-      overflow: auto;
     }
 
     h1 {
@@ -92,28 +89,14 @@
       border-radius: 5px;
       color: #333;
     }
-
-    canvas {
-      width: 100%;
-      height: 300px;
-    }
-
-    .no-scroll {
-      overflow: hidden; /* Impede a rolagem neste bloco */
-    }
-
-    .scrollable {
-      max-height: calc(100vh - 280px); /* A altura é ajustada conforme o primeiro bloco */
-      overflow-y: auto;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Registro de Atividades</h1>
 
-    <!-- Cronômetro e motivo (sempre visível) -->
-    <div class="block no-scroll">
+    <!-- Cronômetro e motivo -->
+    <div class="block">
       <p id="timer-display">00:00:00</p>
       <button id="start-btn">Start</button>
       <button id="stop-btn" disabled>Stop</button>
@@ -121,29 +104,26 @@
       <button id="save-btn" disabled>Salvar</button>
     </div>
 
-    <!-- Conteúdo com rolagem -->
-    <div class="scrollable">
-      <!-- Tabela de registros -->
-      <div class="block">
-        <h2>Registros</h2>
-        <table id="records-table">
-          <thead>
-            <tr>
-              <th>Data e Hora</th>
-              <th>Motivo</th>
-              <th>Tempo</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <button id="download-btn">Exportar para Excel</button>
-      </div>
+    <!-- Tabela de registros -->
+    <div class="block">
+      <h2>Registros</h2>
+      <table id="records-table">
+        <thead>
+          <tr>
+            <th>Data e Hora</th>
+            <th>Motivo</th>
+            <th>Tempo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="download-btn">Exportar para Excel</button>
+    </div>
 
-      <!-- Resumo - Gráfico de barras -->
-      <div class="block">
-        <h2>Resumo</h2>
-        <canvas id="summary-chart"></canvas>
-      </div>
+    <!-- Resumo -->
+    <div class="block">
+      <h2>Resumo</h2>
+      <div id="summary"></div>
     </div>
   </div>
 
@@ -155,7 +135,7 @@
     const saveBtn = document.getElementById("save-btn");
     const motivoInput = document.getElementById("motivo");
     const recordsTable = document.querySelector("#records-table tbody");
-    const summaryChart = document.getElementById("summary-chart");
+    const summaryDiv = document.getElementById("summary");
 
     // Variáveis para cronômetro
     let timerInterval;
@@ -186,7 +166,7 @@
       const seconds = Math.floor((elapsedTime / 1000) % 60);
       const minutes = Math.floor((elapsedTime / (1000 * 60)) % 60);
       const hours = Math.floor((elapsedTime / (1000 * 60 * 60)) % 24);
-      timerDisplay.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      timerDisplay.textContent = ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")};
     }
 
     // Salva o registro
@@ -224,35 +204,16 @@
       });
     }
 
-    // Atualiza o resumo (Gráfico)
+    // Atualiza o resumo
     function updateSummary(records) {
       const summary = records.reduce((acc, record) => {
         acc[record.motivo] = (acc[record.motivo] || 0) + convertTimeToSeconds(record.tempo);
         return acc;
       }, {});
 
-      const sortedSummary = Object.entries(summary).sort((a, b) => b[1] - a[1]);
-      const labels = sortedSummary.map(item => item[0]);
-      const data = sortedSummary.map(item => item[1]);
-
-      new Chart(summaryChart, {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: "Tempo Total (em segundos)",
-            data: data,
-            backgroundColor: "rgba(75, 192, 192, 0.2)",
-            borderColor: "rgba(75, 192, 192, 1)",
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
+      summaryDiv.innerHTML = Object.entries(summary)
+        .map(([motivo, seconds]) => <p>${motivo}: ${convertSecondsToTime(seconds)}</p>)
+        .join("");
     }
 
     // Converte tempo para segundos
@@ -261,12 +222,31 @@
       return hours * 3600 + minutes * 60 + seconds;
     }
 
-    // Inicializa a tabela e o gráfico ao carregar a página
-    window.onload = () => {
+    // Converte segundos para tempo
+    function convertSecondsToTime(seconds) {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+      return ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")};
+    }
+
+    // Exporta para Excel
+    document.getElementById("download-btn").addEventListener("click", () => {
+      const rows = [["Data e Hora", "Motivo", "Tempo"], ...JSON.parse(localStorage.getItem("records") || "[]").map(record => [record.dataHora, record.motivo, record.tempo])];
+      const csvContent = rows.map(row => row.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "registros.csv";
+      link.click();
+    });
+
+    // Carrega registros ao iniciar
+    document.addEventListener("DOMContentLoaded", () => {
       const records = JSON.parse(localStorage.getItem("records")) || [];
       renderTable(records);
       updateSummary(records);
-    };
+    });
   </script>
 </body>
 </html>
