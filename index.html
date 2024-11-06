@@ -90,7 +90,8 @@
 
         .table-container {
             width: 100%;
-            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         table {
@@ -189,7 +190,7 @@
         // Função para atualizar a tabela
         function updateTable() {
             timeTable.innerHTML = '';
-            dataStorage.forEach(item => {
+            dataStorage.slice(0, 5).forEach(item => { // Limitar a 5 linhas
                 let row = timeTable.insertRow();
                 row.insertCell(0).innerText = item.date;
                 row.insertCell(1).innerText = item.motivo;
