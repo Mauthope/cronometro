@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cronômetro com Motivo e Resumo</title>
+  <title>Cronômetro com Gráfico de Motivo</title>
   <style>
     * {
       box-sizing: border-box;
@@ -85,13 +85,6 @@
       border-bottom: 1px solid #ddd;
     }
 
-    #summary {
-      padding: 10px;
-      background-color: #e9f7ef;
-      border-radius: 5px;
-      color: #333;
-    }
-
     canvas {
       max-width: 100%;
     }
@@ -129,10 +122,9 @@
       <button id="download-btn">Exportar para Excel</button>
     </div>
 
-    <!-- Resumo com gráfico -->
+    <!-- Gráfico de somatório de tempo por motivo -->
     <div class="block">
-      <h2>Resumo</h2>
-      <div id="summary"></div>
+      <h2>Gráfico de Tempo por Motivo</h2>
       <canvas id="summaryChart"></canvas>
     </div>
   </div>
@@ -144,7 +136,6 @@
     const saveBtn = document.getElementById("save-btn");
     const motivoInput = document.getElementById("motivo");
     const recordsTable = document.querySelector("#records-table tbody");
-    const summaryDiv = document.getElementById("summary");
 
     let timerInterval;
     let startTime;
@@ -193,7 +184,7 @@
       records.push(record);
       localStorage.setItem("records", JSON.stringify(records));
       renderTable(records);
-      updateSummary(records);
+      updateSummaryChart(records);
     }
 
     function renderTable(records) {
@@ -206,17 +197,13 @@
       });
     }
 
-    function updateSummary(records) {
+    function updateSummaryChart(records) {
       const summary = records.reduce((acc, record) => {
         acc[record.motivo] = (acc[record.motivo] || 0) + convertTimeToSeconds(record.tempo);
         return acc;
       }, {});
 
       const sortedSummary = Object.entries(summary).sort((a, b) => b[1] - a[1]);
-
-      summaryDiv.innerHTML = sortedSummary
-        .map(([motivo, seconds]) => `<p>${motivo}: ${convertSecondsToTime(seconds)}</p>`)
-        .join("");
 
       const labels = sortedSummary.map(([motivo]) => motivo);
       const data = sortedSummary.map(([_, seconds]) => seconds / 60);
@@ -260,13 +247,6 @@
       return hours * 3600 + minutes * 60 + seconds;
     }
 
-    function convertSecondsToTime(seconds) {
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const remainingSeconds = seconds % 60;
-      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
-    }
-
     document.getElementById("download-btn").addEventListener("click", () => {
       const records = JSON.parse(localStorage.getItem("records")) || [];
       const csv = ["Data e Hora,Motivo,Tempo"];
@@ -291,7 +271,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       const records = JSON.parse(localStorage.getItem("records")) || [];
       renderTable(records);
-      updateSummary(records);
+      updateSummaryChart(records);
     });
   </script>
 </body>
