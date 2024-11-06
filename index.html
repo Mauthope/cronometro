@@ -236,15 +236,18 @@
             updateTable();
         }
 
-        // Função para gerar o gráfico
+        // Função para gerar o gráfico a partir da tabela
         function updateChart() {
             let motivoTimeMap = {};
 
-            dataStorage.forEach(item => {
-                if (!motivoTimeMap[item.motivo]) {
-                    motivoTimeMap[item.motivo] = 0;
+            // Pega os dados da tabela
+            Array.from(timeTable.rows).forEach(row => {
+                let motivo = row.cells[1].innerText;
+                let time = parseInt(row.cells[2].innerText);
+                if (!motivoTimeMap[motivo]) {
+                    motivoTimeMap[motivo] = 0;
                 }
-                motivoTimeMap[item.motivo] += item.time;
+                motivoTimeMap[motivo] += time;
             });
 
             let labels = Object.keys(motivoTimeMap);
