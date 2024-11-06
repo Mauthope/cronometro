@@ -240,7 +240,7 @@
         function updateChart() {
             let motivoTimeMap = {};
 
-            // Pega os dados da tabela
+            // Pega os dados da tabela e agrupa por motivo somando os tempos
             Array.from(timeTable.rows).forEach(row => {
                 let motivo = row.cells[1].innerText;
                 let time = parseInt(row.cells[2].innerText);
@@ -298,7 +298,7 @@
         // Função para baixar a tabela como arquivo Excel
         function downloadTable() {
             let table = document.getElementById('timeTable');
-            let wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
+            let wb = XLSX.utils.table_to_book(table);
             XLSX.writeFile(wb, 'time_data.xlsx');
         }
 
