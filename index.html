@@ -207,12 +207,17 @@
     // Atualiza o resumo
     function updateSummary(records) {
       const summary = records.reduce((acc, record) => {
-        acc[record.motivo] = (acc[record.motivo] || 0) + convertTimeToSeconds(record.tempo);
+        const timeInSeconds = convertTimeToSeconds(record.tempo);
+        if (acc[record.motivo]) {
+          acc[record.motivo] += timeInSeconds;
+        } else {
+          acc[record.motivo] = timeInSeconds;
+        }
         return acc;
       }, {});
 
       summaryDiv.innerHTML = Object.entries(summary)
-        .map(([motivo, seconds]) => `<p>${motivo}: ${convertSecondsToTime(seconds)}</p>`)
+        .map(([motivo, totalSeconds]) => `<p>${motivo}: ${convertSecondsToTime(totalSeconds)}</p>`)
         .join("");
     }
 
