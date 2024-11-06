@@ -1,278 +1,259 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cronômetro com Gráfico de Motivo</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronômetro com Motivo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f3f4f6;
-    }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
 
-    .container {
-      max-width: 600px;
-      width: 100%;
-      padding: 20px;
-    }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
 
-    .block {
-      background: #ffffff;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+        .controls button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-    #timer-display {
-      font-size: 2em;
-      margin-bottom: 10px;
-      text-align: center;
-    }
+        #startButton {
+            background-color: green;
+            color: white;
+        }
 
-    button {
-      padding: 8px 12px;
-      margin: 5px;
-      border: none;
-      border-radius: 4px;
-      background-color: #007bff;
-      color: #ffffff;
-      cursor: pointer;
-    }
+        #stopButton {
+            background-color: red;
+            color: white;
+            display: none;
+        }
 
-    button:disabled {
-      background-color: #ccc;
-    }
+        .input-section {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    input[type="text"] {
-      width: calc(100% - 20px);
-      padding: 8px;
-      margin: 5px 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
+        .input-section input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin-bottom: 10px;
+        }
 
-    .records-table-container {
-      max-height: 200px;
-      overflow-y: auto;
-    }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
 
-    th, td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
 
-    canvas {
-      max-width: 100%;
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .download-btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+        }
+
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Registro de Atividades</h1>
 
-    <!-- Cronômetro e motivo -->
-    <div class="block">
-      <p id="timer-display">00:00:00</p>
-      <button id="start-btn">Start</button>
-      <button id="stop-btn" disabled>Stop</button>
-      <input type="text" id="motivo" placeholder="Motivo da atividade" />
-      <button id="save-btn" disabled>Salvar</button>
+    <div class="container">
+        <h1>Cronômetro com Motivo</h1>
+
+        <div class="controls">
+            <button id="startButton">Iniciar</button>
+            <button id="stopButton">Parar</button>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="motivoInput" placeholder="Informe o motivo" />
+        </div>
+
+        <div class="table-container">
+            <table id="timeTable">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Motivo</th>
+                        <th>Tempo (segundos)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button class="download-btn" onclick="downloadTable()">Baixar Excel</button>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
     </div>
 
-    <!-- Tabela de registros com barra de rolagem -->
-    <div class="block">
-      <h2>Registros</h2>
-      <div class="records-table-container">
-        <table id="records-table">
-          <thead>
-            <tr>
-              <th>Data e Hora</th>
-              <th>Motivo</th>
-              <th>Tempo</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <button id="download-btn">Exportar para Excel</button>
-    </div>
+    <script>
+        let startButton = document.getElementById('startButton');
+        let stopButton = document.getElementById('stopButton');
+        let motivoInput = document.getElementById('motivoInput');
+        let timeTable = document.getElementById('timeTable').getElementsByTagName('tbody')[0];
+        let chartCtx = document.getElementById('chart').getContext('2d');
 
-    <!-- Gráfico de somatório de tempo por motivo -->
-    <div class="block">
-      <h2>Gráfico de Tempo por Motivo</h2>
-      <canvas id="summaryChart"></canvas>
-    </div>
-  </div>
+        let startTime;
+        let timerInterval;
+        let elapsedTime = 0;
 
-  <script>
-    const timerDisplay = document.getElementById("timer-display");
-    const startBtn = document.getElementById("start-btn");
-    const stopBtn = document.getElementById("stop-btn");
-    const saveBtn = document.getElementById("save-btn");
-    const motivoInput = document.getElementById("motivo");
-    const recordsTable = document.querySelector("#records-table tbody");
+        // Carregar dados salvos do localStorage
+        let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
 
-    let timerInterval;
-    let startTime;
-    let elapsedTime = 0;
-
-    startBtn.addEventListener("click", () => {
-      startTime = Date.now() - elapsedTime;
-      timerInterval = setInterval(updateTimer, 1000);
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-      saveBtn.disabled = true;
-    });
-
-    stopBtn.addEventListener("click", () => {
-      clearInterval(timerInterval);
-      elapsedTime = Date.now() - startTime;
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      saveBtn.disabled = false;
-    });
-
-    function updateTimer() {
-      elapsedTime = Date.now() - startTime;
-      const seconds = Math.floor((elapsedTime / 1000) % 60);
-      const minutes = Math.floor((elapsedTime / (1000 * 60)) % 60);
-      const hours = Math.floor((elapsedTime / (1000 * 60 * 60)) % 24);
-      timerDisplay.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    saveBtn.addEventListener("click", () => {
-      const motivo = motivoInput.value.trim();
-      if (!motivo) return alert("Insira um motivo!");
-
-      const dataHora = new Date().toLocaleString();
-      const tempo = timerDisplay.textContent;
-
-      const record = { dataHora, motivo, tempo };
-      saveRecord(record);
-      motivoInput.value = "";
-      elapsedTime = 0;
-      timerDisplay.textContent = "00:00:00";
-    });
-
-    function saveRecord(record) {
-      const records = JSON.parse(localStorage.getItem("records")) || [];
-      records.push(record);
-      localStorage.setItem("records", JSON.stringify(records));
-      renderTable(records);
-      updateSummaryChart(records);
-    }
-
-    function renderTable(records) {
-      recordsTable.innerHTML = "";
-      records.forEach(record => {
-        const row = recordsTable.insertRow();
-        row.insertCell().textContent = record.dataHora;
-        row.insertCell().textContent = record.motivo;
-        row.insertCell().textContent = record.tempo;
-      });
-    }
-
-    function updateSummaryChart(records) {
-      const summary = records.reduce((acc, record) => {
-        acc[record.motivo] = (acc[record.motivo] || 0) + convertTimeToSeconds(record.tempo);
-        return acc;
-      }, {});
-
-      const sortedSummary = Object.entries(summary).sort((a, b) => b[1] - a[1]);
-
-      const labels = sortedSummary.map(([motivo]) => motivo);
-      const data = sortedSummary.map(([_, seconds]) => seconds / 60);
-
-      const ctx = document.getElementById('summaryChart').getContext('2d');
-      if (window.summaryChart) {
-        window.summaryChart.destroy();
-      }
-      window.summaryChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Tempo em minutos',
-            data,
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Tempo (minutos)'
-              }
-            }
-          },
-          plugins: {
-            legend: { display: false }
-          }
+        // Função para atualizar a tabela
+        function updateTable() {
+            timeTable.innerHTML = '';
+            dataStorage.forEach(item => {
+                let row = timeTable.insertRow();
+                row.insertCell(0).innerText = item.date;
+                row.insertCell(1).innerText = item.motivo;
+                row.insertCell(2).innerText = item.time;
+            });
+            updateChart();
         }
-      });
-    }
 
-    function convertTimeToSeconds(time) {
-      const [hours, minutes, seconds] = time.split(":").map(Number);
-      return hours * 3600 + minutes * 60 + seconds;
-    }
+        // Função para iniciar o cronômetro
+        function startTimer() {
+            startButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(() => {
+                elapsedTime = Date.now() - startTime;
+            }, 100);
+        }
 
-    document.getElementById("download-btn").addEventListener("click", () => {
-      const records = JSON.parse(localStorage.getItem("records")) || [];
-      const csv = ["Data e Hora,Motivo,Tempo"];
-      records.forEach(record => {
-        csv.push(`${record.dataHora},${record.motivo},${record.tempo}`);
-      });
-      downloadCSV(csv.join("\n"), "registros.csv");
-    });
+        // Função para parar o cronômetro
+        function stopTimer() {
+            clearInterval(timerInterval);
+            let motivo = motivoInput.value;
+            let timeInSeconds = Math.floor(elapsedTime / 1000);
+            let date = new Date().toLocaleString();
+            
+            dataStorage.push({ date, motivo, time: timeInSeconds });
+            localStorage.setItem('timeData', JSON.stringify(dataStorage));
 
-    function downloadCSV(content, filename) {
-      const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename);
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+            motivoInput.value = '';
+            elapsedTime = 0;
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+            updateTable();
+        }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const records = JSON.parse(localStorage.getItem("records")) || [];
-      renderTable(records);
-      updateSummaryChart(records);
-    });
-  </script>
+        // Função para gerar o gráfico
+        function updateChart() {
+            let motivoTimeMap = {};
+
+            dataStorage.forEach(item => {
+                if (!motivoTimeMap[item.motivo]) {
+                    motivoTimeMap[item.motivo] = 0;
+                }
+                motivoTimeMap[item.motivo] += item.time;
+            });
+
+            let labels = Object.keys(motivoTimeMap);
+            let data = Object.values(motivoTimeMap);
+
+            if (window.chart) {
+                window.chart.destroy();
+            }
+
+            window.chart = new Chart(chartCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Tempo total por motivo (segundos)',
+                        data: data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Função para baixar a tabela como arquivo Excel
+        function downloadTable() {
+            let table = document.getElementById('timeTable');
+            let wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
+            XLSX.writeFile(wb, 'time_data.xlsx');
+        }
+
+        startButton.addEventListener('click', startTimer);
+        stopButton.addEventListener('click', stopTimer);
+
+        // Atualizar tabela e gráfico ao carregar a página
+        updateTable();
+    </script>
+
+    <!-- Adicionar o script para exportar para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
 </body>
 </html>
