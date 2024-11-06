@@ -72,6 +72,9 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      display: block;
     }
 
     th, td {
@@ -193,7 +196,7 @@
     // Renderiza a tabela
     function renderTable(records) {
       recordsTable.innerHTML = "";
-      records.forEach(record => {
+      records.slice(-5).forEach(record => {  // Exibe apenas as últimas 5 entradas
         const row = recordsTable.insertRow();
         row.insertCell().textContent = record.dataHora;
         row.insertCell().textContent = record.motivo;
