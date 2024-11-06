@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cronômetro com Motivo e Resumo</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -144,7 +145,7 @@
     let startTime;
     let elapsedTime = 0;
 
-    // Inicia o cronômetro
+    // Função para iniciar o cronômetro
     startBtn.addEventListener("click", () => {
       startTime = Date.now() - elapsedTime;
       timerInterval = setInterval(updateTimer, 1000);
@@ -153,7 +154,7 @@
       saveBtn.disabled = true; // Desativa o botão de salvar enquanto o cronômetro está em andamento
     });
 
-    // Para o cronômetro
+    // Função para parar o cronômetro
     stopBtn.addEventListener("click", () => {
       clearInterval(timerInterval);
       elapsedTime = Date.now() - startTime;
@@ -162,7 +163,7 @@
       saveBtn.disabled = false; // Ativa o botão de salvar quando o cronômetro estiver parado
     });
 
-    // Atualiza o cronômetro
+    // Função para atualizar o cronômetro
     function updateTimer() {
       elapsedTime = Date.now() - startTime;
       const seconds = Math.floor((elapsedTime / 1000) % 60);
@@ -171,7 +172,7 @@
       timerDisplay.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
-    // Salva o registro
+    // Função para salvar o registro
     saveBtn.addEventListener("click", () => {
       const motivo = motivoInput.value.trim();
       if (!motivo) return alert("Insira um motivo!");
@@ -186,7 +187,7 @@
       timerDisplay.textContent = "00:00:00";
     });
 
-    // Salva e atualiza localStorage
+    // Função para salvar e atualizar localStorage
     function saveRecord(record) {
       const records = JSON.parse(localStorage.getItem("records")) || [];
       records.push(record);
@@ -195,7 +196,7 @@
       updateChart(records);
     }
 
-    // Renderiza a tabela
+    // Função para renderizar a tabela
     function renderTable(records) {
       recordsTable.innerHTML = "";
       records.slice(-5).forEach(record => {  // Exibe apenas as últimas 5 entradas
@@ -206,7 +207,7 @@
       });
     }
 
-    // Atualiza o gráfico
+    // Função para atualizar o gráfico
     function updateChart(records) {
       const summary = records.reduce((acc, record) => {
         const timeInSeconds = convertTimeToSeconds(record.tempo);
@@ -250,13 +251,13 @@
       }
     }
 
-    // Converte tempo para segundos
+    // Função para converter tempo (HH:MM:SS) para segundos
     function convertTimeToSeconds(time) {
       const [hours, minutes, seconds] = time.split(":").map(Number);
       return hours * 3600 + minutes * 60 + seconds;
     }
 
-    // Converte segundos para tempo
+    // Função para converter segundos de volta para HH:MM:SS
     function convertSecondsToTime(seconds) {
       const hours = Math.floor(seconds / 3600);
       const minutes = Math.floor((seconds % 3600) / 60);
@@ -264,7 +265,7 @@
       return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
     }
 
-    // Exporta os dados da tabela para Excel
+    // Função para exportar os dados para Excel
     document.getElementById("download-btn").addEventListener("click", () => {
       const records = JSON.parse(localStorage.getItem("records")) || [];
       const wb = XLSX.utils.book_new();
@@ -273,7 +274,7 @@
       XLSX.writeFile(wb, "registros.xlsx");
     });
 
-    // Carrega os registros salvos ao iniciar
+    // Carregar registros ao iniciar
     window.onload = () => {
       const records = JSON.parse(localStorage.getItem("records")) || [];
       renderTable(records);
