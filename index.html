@@ -4,92 +4,90 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cronômetro com Motivo e Resumo</title>
-  <link rel="stylesheet" href="style.css">
-</head>
   <style>
     * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-}
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
 
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f3f4f6;
-}
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f3f4f6;
+    }
 
-.container {
-  max-width: 600px;
-  width: 100%;
-  padding: 20px;
-}
+    .container {
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+    }
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
 
-.block {
-  background: #ffffff;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
+    .block {
+      background: #ffffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 
-#timer-display {
-  font-size: 2em;
-  margin-bottom: 10px;
-  text-align: center;
-}
+    #timer-display {
+      font-size: 2em;
+      margin-bottom: 10px;
+      text-align: center;
+    }
 
-button {
-  padding: 8px 12px;
-  margin: 5px;
-  border: none;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: #ffffff;
-  cursor: pointer;
-}
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: #ffffff;
+      cursor: pointer;
+    }
 
-button:disabled {
-  background-color: #ccc;
-}
+    button:disabled {
+      background-color: #ccc;
+    }
 
-input[type="text"] {
-  width: calc(100% - 20px);
-  padding: 8px;
-  margin: 5px 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
+    input[type="text"] {
+      width: calc(100% - 20px);
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
 
-th, td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
 
-#summary {
-  padding: 10px;
-  background-color: #e9f7ef;
-  border-radius: 5px;
-  color: #333;
-}
-
+    #summary {
+      padding: 10px;
+      background-color: #e9f7ef;
+      border-radius: 5px;
+      color: #333;
+    }
   </style>
+</head>
 <body>
   <div class="container">
     <h1>Registro de Atividades</h1>
@@ -100,7 +98,7 @@ th, td {
       <button id="start-btn">Start</button>
       <button id="stop-btn" disabled>Stop</button>
       <input type="text" id="motivo" placeholder="Motivo da atividade" />
-      <button id="save-btn">Salvar</button>
+      <button id="save-btn" disabled>Salvar</button>
     </div>
 
     <!-- Tabela de registros -->
@@ -126,127 +124,126 @@ th, td {
     </div>
   </div>
 
-  <script src="script.js"></script>
   <script>
     // Seleção de elementos
-const timerDisplay = document.getElementById("timer-display");
-const startBtn = document.getElementById("start-btn");
-const stopBtn = document.getElementById("stop-btn");
-const saveBtn = document.getElementById("save-btn");
-const motivoInput = document.getElementById("motivo");
-const recordsTable = document.querySelector("#records-table tbody");
-const summaryDiv = document.getElementById("summary");
+    const timerDisplay = document.getElementById("timer-display");
+    const startBtn = document.getElementById("start-btn");
+    const stopBtn = document.getElementById("stop-btn");
+    const saveBtn = document.getElementById("save-btn");
+    const motivoInput = document.getElementById("motivo");
+    const recordsTable = document.querySelector("#records-table tbody");
+    const summaryDiv = document.getElementById("summary");
 
-// Variáveis para cronômetro
-let timerInterval;
-let startTime;
-let elapsedTime = 0;
+    // Variáveis para cronômetro
+    let timerInterval;
+    let startTime;
+    let elapsedTime = 0;
 
-// Inicia o cronômetro
-startBtn.addEventListener("click", () => {
-  startTime = Date.now() - elapsedTime;
-  timerInterval = setInterval(updateTimer, 1000);
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
-});
+    // Inicia o cronômetro
+    startBtn.addEventListener("click", () => {
+      startTime = Date.now() - elapsedTime;
+      timerInterval = setInterval(updateTimer, 1000);
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      saveBtn.disabled = true; // Desativa o botão de salvar enquanto o cronômetro está em andamento
+    });
 
-// Para o cronômetro
-stopBtn.addEventListener("click", () => {
-  clearInterval(timerInterval);
-  elapsedTime = Date.now() - startTime;
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
-});
+    // Para o cronômetro
+    stopBtn.addEventListener("click", () => {
+      clearInterval(timerInterval);
+      elapsedTime = Date.now() - startTime;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      saveBtn.disabled = false; // Ativa o botão de salvar quando o cronômetro estiver parado
+    });
 
-// Atualiza o cronômetro
-function updateTimer() {
-  elapsedTime = Date.now() - startTime;
-  const seconds = Math.floor((elapsedTime / 1000) % 60);
-  const minutes = Math.floor((elapsedTime / (1000 * 60)) % 60);
-  const hours = Math.floor((elapsedTime / (1000 * 60 * 60)) % 24);
-  timerDisplay.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
+    // Atualiza o cronômetro
+    function updateTimer() {
+      elapsedTime = Date.now() - startTime;
+      const seconds = Math.floor((elapsedTime / 1000) % 60);
+      const minutes = Math.floor((elapsedTime / (1000 * 60)) % 60);
+      const hours = Math.floor((elapsedTime / (1000 * 60 * 60)) % 24);
+      timerDisplay.textContent = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
 
-// Salva o registro
-saveBtn.addEventListener("click", () => {
-  const motivo = motivoInput.value.trim();
-  if (!motivo) return alert("Insira um motivo!");
+    // Salva o registro
+    saveBtn.addEventListener("click", () => {
+      const motivo = motivoInput.value.trim();
+      if (!motivo) return alert("Insira um motivo!");
 
-  const dataHora = new Date().toLocaleString();
-  const tempo = timerDisplay.textContent;
+      const dataHora = new Date().toLocaleString();
+      const tempo = timerDisplay.textContent;
 
-  const record = { dataHora, motivo, tempo };
-  saveRecord(record);
-  motivoInput.value = "";
-  elapsedTime = 0;
-  timerDisplay.textContent = "00:00:00";
-});
+      const record = { dataHora, motivo, tempo };
+      saveRecord(record);
+      motivoInput.value = "";
+      elapsedTime = 0;
+      timerDisplay.textContent = "00:00:00";
+    });
 
-// Salva e atualiza localStorage
-function saveRecord(record) {
-  const records = JSON.parse(localStorage.getItem("records")) || [];
-  records.push(record);
-  localStorage.setItem("records", JSON.stringify(records));
-  renderTable(records);
-  updateSummary(records);
-}
+    // Salva e atualiza localStorage
+    function saveRecord(record) {
+      const records = JSON.parse(localStorage.getItem("records")) || [];
+      records.push(record);
+      localStorage.setItem("records", JSON.stringify(records));
+      renderTable(records);
+      updateSummary(records);
+    }
 
-// Renderiza a tabela
-function renderTable(records) {
-  recordsTable.innerHTML = "";
-  records.forEach(record => {
-    const row = recordsTable.insertRow();
-    row.insertCell().textContent = record.dataHora;
-    row.insertCell().textContent = record.motivo;
-    row.insertCell().textContent = record.tempo;
-  });
-}
+    // Renderiza a tabela
+    function renderTable(records) {
+      recordsTable.innerHTML = "";
+      records.forEach(record => {
+        const row = recordsTable.insertRow();
+        row.insertCell().textContent = record.dataHora;
+        row.insertCell().textContent = record.motivo;
+        row.insertCell().textContent = record.tempo;
+      });
+    }
 
-// Atualiza o resumo
-function updateSummary(records) {
-  const summary = records.reduce((acc, record) => {
-    acc[record.motivo] = (acc[record.motivo] || 0) + convertTimeToSeconds(record.tempo);
-    return acc;
-  }, {});
-  
-  summaryDiv.innerHTML = Object.entries(summary)
-    .map(([motivo, seconds]) => `<p>${motivo}: ${convertSecondsToTime(seconds)}</p>`)
-    .join("");
-}
+    // Atualiza o resumo
+    function updateSummary(records) {
+      const summary = records.reduce((acc, record) => {
+        acc[record.motivo] = (acc[record.motivo] || 0) + convertTimeToSeconds(record.tempo);
+        return acc;
+      }, {});
 
-// Converte tempo para segundos
-function convertTimeToSeconds(time) {
-  const [hours, minutes, seconds] = time.split(":").map(Number);
-  return hours * 3600 + minutes * 60 + seconds;
-}
+      summaryDiv.innerHTML = Object.entries(summary)
+        .map(([motivo, seconds]) => `<p>${motivo}: ${convertSecondsToTime(seconds)}</p>`)
+        .join("");
+    }
 
-// Converte segundos para tempo
-function convertSecondsToTime(seconds) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
-}
+    // Converte tempo para segundos
+    function convertTimeToSeconds(time) {
+      const [hours, minutes, seconds] = time.split(":").map(Number);
+      return hours * 3600 + minutes * 60 + seconds;
+    }
 
-// Exporta para Excel
-document.getElementById("download-btn").addEventListener("click", () => {
-  const rows = [["Data e Hora", "Motivo", "Tempo"], ...JSON.parse(localStorage.getItem("records") || "[]").map(record => [record.dataHora, record.motivo, record.tempo])];
-  const csvContent = rows.map(row => row.join(",")).join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "registros.csv";
-  link.click();
-});
+    // Converte segundos para tempo
+    function convertSecondsToTime(seconds) {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+    }
 
-// Carrega registros ao iniciar
-document.addEventListener("DOMContentLoaded", () => {
-  const records = JSON.parse(localStorage.getItem("records")) || [];
-  renderTable(records);
-  updateSummary(records);
-});
+    // Exporta para Excel
+    document.getElementById("download-btn").addEventListener("click", () => {
+      const rows = [["Data e Hora", "Motivo", "Tempo"], ...JSON.parse(localStorage.getItem("records") || "[]").map(record => [record.dataHora, record.motivo, record.tempo])];
+      const csvContent = rows.map(row => row.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "registros.csv";
+      link.click();
+    });
 
+    // Carrega registros ao iniciar
+    document.addEventListener("DOMContentLoaded", () => {
+      const records = JSON.parse(localStorage.getItem("records")) || [];
+      renderTable(records);
+      updateSummary(records);
+    });
   </script>
 </body>
 </html>
-
