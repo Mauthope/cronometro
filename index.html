@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cronômetro com Motivo e Resumo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -18,12 +19,14 @@
       align-items: center;
       height: 100vh;
       background-color: #f3f4f6;
+      overflow: auto;
     }
 
     .container {
       max-width: 600px;
       width: 100%;
       padding: 20px;
+      overflow: auto;
     }
 
     h1 {
@@ -89,6 +92,11 @@
       border-radius: 5px;
       color: #333;
     }
+
+    canvas {
+      width: 100%;
+      height: 300px;
+    }
   </style>
 </head>
 <body>
@@ -120,10 +128,10 @@
       <button id="download-btn">Exportar para Excel</button>
     </div>
 
-    <!-- Resumo -->
+    <!-- Resumo - Gráfico de barras -->
     <div class="block">
       <h2>Resumo</h2>
-      <div id="summary"></div>
+      <canvas id="summary-chart"></canvas>
     </div>
   </div>
 
@@ -135,7 +143,7 @@
     const saveBtn = document.getElementById("save-btn");
     const motivoInput = document.getElementById("motivo");
     const recordsTable = document.querySelector("#records-table tbody");
-    const summaryDiv = document.getElementById("summary");
+    const summaryChart = document.getElementById("summary-chart");
 
     // Variáveis para cronômetro
     let timerInterval;
@@ -204,30 +212,41 @@
       });
     }
 
-    // Atualiza o resumo
+    // Atualiza o resumo (Gráfico)
     function updateSummary(records) {
       const summary = records.reduce((acc, record) => {
         acc[record.motivo] = (acc[record.motivo] || 0) + convertTimeToSeconds(record.tempo);
         return acc;
       }, {});
 
-      summaryDiv.innerHTML = Object.entries(summary)
-        .map(([motivo, seconds]) => `<p>${motivo}: ${convertSecondsToTime(seconds)}</p>`)
-        .join("");
+      const sortedSummary = Object.entries(summary).sort((a, b) => b[1] - a[1]);
+      const labels = sortedSummary.map(item => item[0]);
+      const data = sortedSummary.map(item => item[1]);
+
+      new Chart(summaryChart, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Tempo Total (em segundos)",
+            data: data,
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
     }
 
     // Converte tempo para segundos
     function convertTimeToSeconds(time) {
       const [hours, minutes, seconds] = time.split(":").map(Number);
       return hours * 3600 + minutes * 60 + seconds;
-    }
-
-    // Converte segundos para tempo
-    function convertSecondsToTime(seconds) {
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const remainingSeconds = seconds % 60;
-      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
     }
 
     // Exporta para Excel
@@ -241,12 +260,12 @@
       link.click();
     });
 
-    // Carrega registros ao iniciar
-    document.addEventListener("DOMContentLoaded", () => {
+    // Inicializa a tabela e o gráfico ao carregar a página
+    window.onload = () => {
       const records = JSON.parse(localStorage.getItem("records")) || [];
       renderTable(records);
       updateSummary(records);
-    });
+    };
   </script>
 </body>
 </html>
