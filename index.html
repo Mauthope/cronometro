@@ -237,59 +237,66 @@
         }
 
         // Função para gerar o gráfico a partir da tabela
-        function updateChart() {
-            let motivoTimeMap = {};
+       function updateChart() {
+    let motivoTimeMap = {};
 
-            // Agrupar e somar tempos por motivo
-            dataStorage.forEach(item => {
-                let motivo = item.motivo;
-                let time = item.time;
-                if (!motivoTimeMap[motivo]) {
-                    motivoTimeMap[motivo] = 0;
-                }
-                motivoTimeMap[motivo] += time;
-            });
+    // Agrupar e somar tempos por motivo
+    dataStorage.forEach(item => {
+        let motivo = item.motivo;
+        let time = item.time;
+        if (!motivoTimeMap[motivo]) {
+            motivoTimeMap[motivo] = 0;
+        }
+        motivoTimeMap[motivo] += time;
+    });
 
-            let labels = Object.keys(motivoTimeMap);
-            let data = Object.values(motivoTimeMap);
+    let labels = Object.keys(motivoTimeMap);
+    let data = Object.values(motivoTimeMap);
 
-            // Atualizar ou criar o gráfico
-            if (window.chart) {
-                window.chart.destroy();
-            }
+    console.log("Labels:", labels); // Para verificar dados de rótulo
+    console.log("Data:", data); // Para verificar dados de tempo
 
-            window.chart = new Chart(chartCtx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Tempo total por motivo (segundos)',
-                        data: data,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
+    // Atualizar ou criar o gráfico
+    if (window.chart) {
+        window.chart.destroy();
+    }
+
+    window.chart = new Chart(chartCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tempo total por motivo (segundos)',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Tempo (segundos)'
+                    }
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { 
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Tempo (segundos)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Motivos'
-                            }
-                        }
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Motivos'
                     }
                 }
-            });
+            }
         }
+    });
+}
+
+// Teste o gráfico manualmente
+updateChart();
+
 
         function downloadTable() {
             let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo (segundos)\n";
