@@ -92,6 +92,17 @@
             width: 100%;
             max-height: 200px;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #007bff #f4f4f4;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #007bff;
+            border-radius: 4px;
         }
 
         table {
@@ -241,9 +252,9 @@
             let motivoTimeMap = {};
 
             // Pega os dados da tabela e agrupa por motivo somando os tempos
-            Array.from(timeTable.rows).forEach(row => {
-                let motivo = row.cells[1].innerText;
-                let time = parseInt(row.cells[2].innerText);
+            dataStorage.forEach(item => {
+                let motivo = item.motivo;
+                let time = item.time;
                 if (!motivoTimeMap[motivo]) {
                     motivoTimeMap[motivo] = 0;
                 }
@@ -281,36 +292,32 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Motivo'
+                                text: 'Motivos'
                             }
-                        }
-                    },
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
                         }
                     }
                 }
             });
         }
 
-        // Função para baixar a tabela como arquivo Excel
         function downloadTable() {
-            let table = document.getElementById('timeTable');
-            let wb = XLSX.utils.table_to_book(table);
-            XLSX.writeFile(wb, 'time_data.xlsx');
+            let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo (segundos)\n";
+            dataStorage.forEach(item => {
+                csvContent += `${item.date},${item.motivo},${item.time}\n`;
+            });
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "time_data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         startButton.addEventListener('click', startTimer);
         stopButton.addEventListener('click', stopTimer);
 
-        // Inicializar a tabela e o gráfico
-        updateTable();
-
+        updateTable(); // Atualiza a tabela e gráfico ao carregar a página
     </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-
 </body>
 </html>
