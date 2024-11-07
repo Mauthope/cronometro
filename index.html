@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronômetro com Motivo</title>
+    <title>Cronômetro com Gráfico</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -17,102 +15,33 @@
             height: 100vh;
             background-color: #f0f0f0;
         }
-
         .container {
             width: 80%;
-            max-width: 800px;
-            margin: 20px auto;
+            max-width: 600px;
             padding: 20px;
             background-color: #ffffff;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
-        }
-
-        h1 {
             text-align: center;
-            margin-bottom: 20px;
         }
-
-        .section {
-            margin-bottom: 40px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .controls button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 0 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        #startButton {
-            background-color: green;
-            color: white;
-        }
-
-        #stopButton {
-            background-color: red;
-            color: white;
-            display: none;
-        }
-
-        .input-section {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .input-section input {
-            padding: 10px;
-            font-size: 16px;
-            width: 80%;
-            margin-bottom: 10px;
-        }
-
-        .timer {
-            font-size: 30px;
-            font-weight: bold;
-            text-align: center;
+        .controls, .chart-container {
             margin-top: 20px;
         }
-
-        .table-container {
-            width: 100%;
-            max-height: 200px;
-            overflow-y: auto;
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            color: white;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
+        #startButton { background-color: green; }
+        #stopButton { background-color: red; display: none; }
         table, th, td {
             border: 1px solid #ddd;
+            padding: 8px;
         }
-
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #f4f4f4;
-        }
-
         .download-btn {
             padding: 10px 20px;
             background-color: #007bff;
@@ -121,201 +50,145 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            margin-top: 10px;
         }
-
-        .chart-container {
-            width: 100%;
-            height: 300px;
-        }
-
+        #chart { max-width: 100%; height: 300px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Cronômetro com Motivo</h1>
-
-        <!-- Cronômetro -->
-        <div class="section">
-            <div class="controls">
-                <button id="startButton">Iniciar</button>
-                <button id="stopButton">Parar</button>
-            </div>
-            <div class="input-section">
-                <input type="text" id="motivoInput" placeholder="Informe o motivo" />
-            </div>
-            <div class="timer" id="timerDisplay">00:00</div>
-        </div>
-
-        <!-- Tabela e Botão Download -->
-        <div class="section">
-            <div class="table-container">
-                <table id="timeTable">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Motivo</th>
-                            <th>Tempo (segundos)</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <button class="download-btn" onclick="downloadTable()">Baixar Excel</button>
-        </div>
-
-        <!-- Gráfico -->
-        <div class="section">
-            <div class="chart-container">
-                <canvas id="chart"></canvas>
-            </div>
-        </div>
+<div class="container">
+    <h1>Cronômetro com Gráfico</h1>
+    <div class="controls">
+        <button id="startButton">Iniciar</button>
+        <button id="stopButton">Parar</button>
     </div>
+    <input type="text" id="motivoInput" placeholder="Informe o motivo" style="margin-top: 10px; padding: 8px; width: 100%;" />
+    <div id="timerDisplay" style="font-size: 24px; margin: 15px 0;">00:00</div>
+    <table id="timeTable">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Motivo</th>
+                <th>Tempo (segundos)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button class="download-btn" onclick="downloadTable()">Baixar Tabela</button>
+    <div class="chart-container">
+        <canvas id="chart"></canvas>
+    </div>
+</div>
 
-    <script>
-        let startButton = document.getElementById('startButton');
-        let stopButton = document.getElementById('stopButton');
-        let motivoInput = document.getElementById('motivoInput');
-        let timerDisplay = document.getElementById('timerDisplay');
-        let timeTable = document.getElementById('timeTable').getElementsByTagName('tbody')[0];
-        let chartCtx = document.getElementById('chart').getContext('2d');
+<script>
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const motivoInput = document.getElementById('motivoInput');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timeTable = document.getElementById('timeTable').querySelector('tbody');
+    const chartCtx = document.getElementById('chart').getContext('2d');
+    let chart;
+    let timerInterval;
+    let elapsedTime = 0;
+    let startTime;
+    let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
 
-        let startTime;
-        let timerInterval;
-        let elapsedTime = 0;
+    function updateTable() {
+        timeTable.innerHTML = '';
+        dataStorage.slice(-5).forEach(item => {
+            const row = timeTable.insertRow();
+            row.insertCell(0).innerText = item.date;
+            row.insertCell(1).innerText = item.motivo;
+            row.insertCell(2).innerText = item.time;
+        });
+        updateChart();
+    }
 
-        // Carregar dados salvos do localStorage
-        let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
+    function startTimer() {
+        startButton.style.display = 'none';
+        stopButton.style.display = 'inline-block';
+        startTime = Date.now() - elapsedTime;
+        timerInterval = setInterval(updateTimerDisplay, 100);
+    }
 
-        // Função para atualizar a tabela
-        function updateTable() {
-            timeTable.innerHTML = '';
-            dataStorage.slice(-5).forEach(item => { // Limitar a 5 linhas mais recentes
-                let row = timeTable.insertRow();
-                row.insertCell(0).innerText = item.date;
-                row.insertCell(1).innerText = item.motivo;
-                row.insertCell(2).innerText = item.time;
-            });
-            updateChart();
-        }
+    function updateTimerDisplay() {
+        elapsedTime = Date.now() - startTime;
+        const minutes = Math.floor((elapsedTime / 1000) / 60);
+        const seconds = Math.floor((elapsedTime / 1000) % 60);
+        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
 
-        // Função para iniciar o cronômetro
-        function startTimer() {
-            startButton.style.display = 'none';
-            stopButton.style.display = 'inline-block';
-            startTime = Date.now() - elapsedTime;
-            timerInterval = setInterval(() => {
-                elapsedTime = Date.now() - startTime;
-                updateTimerDisplay();
-            }, 100);
-        }
-
-        // Função para atualizar a exibição do cronômetro
-        function updateTimerDisplay() {
-            let timeInSeconds = Math.floor(elapsedTime / 1000);
-            let minutes = Math.floor(timeInSeconds / 60);
-            let seconds = timeInSeconds % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        // Função para parar o cronômetro
-        function stopTimer() {
-            clearInterval(timerInterval);
-            let motivo = motivoInput.value;
-            let timeInSeconds = Math.floor(elapsedTime / 1000);
-            let date = new Date().toLocaleString();
-            
+    function stopTimer() {
+        clearInterval(timerInterval);
+        const motivo = motivoInput.value;
+        const timeInSeconds = Math.floor(elapsedTime / 1000);
+        const date = new Date().toLocaleString();
+        if (motivo) {
             dataStorage.push({ date, motivo, time: timeInSeconds });
             localStorage.setItem('timeData', JSON.stringify(dataStorage));
-
             motivoInput.value = '';
             elapsedTime = 0;
             timerDisplay.textContent = '00:00';
-            startButton.style.display = 'inline-block';
-            stopButton.style.display = 'none';
             updateTable();
         }
-
-        // Função para gerar o gráfico a partir da tabela
-       function updateChart() {
-    let motivoTimeMap = {};
-
-    // Agrupar e somar tempos por motivo
-    dataStorage.forEach(item => {
-        let motivo = item.motivo;
-        let time = item.time;
-        if (!motivoTimeMap[motivo]) {
-            motivoTimeMap[motivo] = 0;
-        }
-        motivoTimeMap[motivo] += time;
-    });
-
-    let labels = Object.keys(motivoTimeMap);
-    let data = Object.values(motivoTimeMap);
-
-    console.log("Labels:", labels); // Para verificar dados de rótulo
-    console.log("Data:", data); // Para verificar dados de tempo
-
-    // Atualizar ou criar o gráfico
-    if (window.chart) {
-        window.chart.destroy();
+        startButton.style.display = 'inline-block';
+        stopButton.style.display = 'none';
     }
 
-    window.chart = new Chart(chartCtx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Tempo total por motivo (segundos)',
-                data: data,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { 
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Tempo (segundos)'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Motivos'
+    function updateChart() {
+        const motivoTimeMap = {};
+        dataStorage.forEach(item => {
+            motivoTimeMap[item.motivo] = (motivoTimeMap[item.motivo] || 0) + item.time;
+        });
+        const labels = Object.keys(motivoTimeMap);
+        const data = Object.values(motivoTimeMap);
+
+        if (chart) chart.destroy();
+        chart = new Chart(chartCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tempo total por motivo (segundos)',
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Tempo (segundos)' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Motivos' }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
-// Teste o gráfico manualmente
-updateChart();
+    function downloadTable() {
+        let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo (segundos)\n";
+        dataStorage.forEach(item => {
+            csvContent += `${item.date},${item.motivo},${item.time}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "time_data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
-
-        function downloadTable() {
-            let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo (segundos)\n";
-            dataStorage.forEach(item => {
-                csvContent += `${item.date},${item.motivo},${item.time}\n`;
-            });
-            let encodedUri = encodeURI(csvContent);
-            let link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "time_data.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        startButton.addEventListener('click', startTimer);
-        stopButton.addEventListener('click', stopTimer);
-
-        updateTable(); // Atualiza a tabela e gráfico ao carregar a página
-    </script>
+    startButton.addEventListener('click', startTimer);
+    stopButton.addEventListener('click', stopTimer);
+    updateTable();
+</script>
 </body>
 </html>
