@@ -92,17 +92,6 @@
             width: 100%;
             max-height: 200px;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #007bff #f4f4f4;
-        }
-
-        .table-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb {
-            background-color: #007bff;
-            border-radius: 4px;
         }
 
         table {
@@ -201,7 +190,7 @@
         // Função para atualizar a tabela
         function updateTable() {
             timeTable.innerHTML = '';
-            dataStorage.slice(0, 5).forEach(item => { // Limitar a 5 linhas
+            dataStorage.slice(-5).forEach(item => { // Limitar a 5 linhas mais recentes
                 let row = timeTable.insertRow();
                 row.insertCell(0).innerText = item.date;
                 row.insertCell(1).innerText = item.motivo;
@@ -251,7 +240,7 @@
         function updateChart() {
             let motivoTimeMap = {};
 
-            // Pega os dados da tabela e agrupa por motivo somando os tempos
+            // Agrupar e somar tempos por motivo
             dataStorage.forEach(item => {
                 let motivo = item.motivo;
                 let time = item.time;
@@ -264,6 +253,7 @@
             let labels = Object.keys(motivoTimeMap);
             let data = Object.values(motivoTimeMap);
 
+            // Atualizar ou criar o gráfico
             if (window.chart) {
                 window.chart.destroy();
             }
@@ -281,6 +271,7 @@
                     }]
                 },
                 options: {
+                    responsive: true,
                     scales: {
                         y: { 
                             beginAtZero: true,
