@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronômetro com Gráfico</title>
+    <title>Cronômetro com Gráficos</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -53,7 +53,7 @@
             margin-top: 10px;
         }
         .clear-btn { background-color: #dc3545; }
-        #chart { max-width: 100%; height: 300px; }
+        #chart, #pieChart { max-width: 100%; height: 300px; margin-top: 20px; }
         .reason-buttons button {
             margin: 5px;
             padding: 10px;
@@ -69,7 +69,7 @@
 <body>
 
 <div class="container">
-    <h1>Cronômetro com Gráfico</h1>
+    <h1>Cronômetro com Gráficos</h1>
     <input type="text" id="newMotivoInput" placeholder="Digite o motivo e pressione Enter" style="margin-top: 10px; padding: 8px; width: 100%;" />
     <div class="reason-buttons" id="reasonButtons"></div>
     <div class="controls">
@@ -90,6 +90,7 @@
     <button class="clear-btn" onclick="clearData()">Limpar</button>
     <div class="chart-container">
         <canvas id="chart"></canvas>
+        <canvas id="pieChart"></canvas>
     </div>
 </div>
 
@@ -99,8 +100,9 @@
     const timeTable = document.getElementById('timeTable').querySelector('tbody');
     const reasonButtons = document.getElementById('reasonButtons');
     const newMotivoInput = document.getElementById('newMotivoInput');
-    const chartCtx = document.getElementById('chart').getContext('2d');
-    let chart;
+    const barChartCtx = document.getElementById('chart').getContext('2d');
+    const pieChartCtx = document.getElementById('pieChart').getContext('2d');
+    let barChart, pieChart;
     let timerInterval;
     let elapsedTime = 0;
     let startTime;
@@ -115,7 +117,7 @@
             row.insertCell(1).innerText = item.motivo;
             row.insertCell(2).innerText = item.time;
         });
-        updateChart();
+        updateCharts();
     }
 
     function addMotivoButton(motivo) {
@@ -155,7 +157,7 @@
         currentMotivo = null;
     }
 
-    function updateChart() {
+    function updateCharts() {
         const motivoTimeMap = {};
         dataStorage.forEach(item => {
             motivoTimeMap[item.motivo] = (motivoTimeMap[item.motivo] || 0) + item.time;
@@ -163,8 +165,8 @@
         const labels = Object.keys(motivoTimeMap);
         const data = Object.values(motivoTimeMap);
 
-        if (chart) chart.destroy();
-        chart = new Chart(chartCtx, {
+        if (barChart) barChart.destroy();
+        barChart = new Chart(barChartCtx, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -185,6 +187,35 @@
                     },
                     x: {
                         title: { display: true, text: 'Motivos' }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Pizza
+        const total = data.reduce((sum, value) => sum + value, 0);
+        const percentageData = data.map(value => ((value / total) * 100).toFixed(2));
+
+        if (pieChart) pieChart.destroy();
+        pieChart = new Chart(pieChartCtx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Percentual de Tempo por Motivo',
+                    data: percentageData,
+                    backgroundColor: labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`)
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.label}: ${context.raw}%`;
+                            }
+                        }
                     }
                 }
             }
@@ -211,18 +242,14 @@
             localStorage.removeItem('timeData');
             reasonButtons.innerHTML = '';
             updateTable();
-            updateChart();
-            timerDisplay.textContent = '00:00';
+            updateCharts();
         }
     }
 
-    newMotivoInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const motivo = newMotivoInput.value.trim();
-            if (motivo) {
-                addMotivoButton(motivo);
-                newMotivoInput.value = '';
-            }
+    newMotivoInput.addEventListener('keyup', event => {
+        if (event.key === 'Enter' && newMotivoInput.value) {
+            addMotivoButton(newMotivoInput.value);
+            newMotivoInput.value = '';
         }
     });
 
