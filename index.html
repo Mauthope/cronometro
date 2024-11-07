@@ -6,68 +6,10 @@
     <title>Cronômetro com Gráficos</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .container {
-            width: 80%;
-            max-width: 600px;
-            padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            text-align: center;
-        }
-        .controls, .chart-container, .reason-buttons {
-            margin-top: 20px;
-        }
-        .controls button {
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            color: white;
-        }
-        #startButton { background-color: green; }
-        #stopButton { background-color: red; display: none; }
-        table, th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        .download-btn, .clear-btn {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        .clear-btn { background-color: #dc3545; }
-        #chart, #pieChart { max-width: 100%; height: 300px; margin-top: 20px; }
-        .reason-buttons button {
-            margin: 5px;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        /* seu estilo CSS */
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1>Cronômetro com Gráficos</h1>
     <input type="text" id="newMotivoInput" placeholder="Digite o motivo e pressione Enter" style="margin-top: 10px; padding: 8px; width: 100%;" />
@@ -95,19 +37,18 @@
 </div>
 
 <script>
+    const reasonButtons = document.getElementById('reasonButtons');
+    const newMotivoInput = document.getElementById('newMotivoInput');
     const stopButton = document.getElementById('stopButton');
     const timerDisplay = document.getElementById('timerDisplay');
     const timeTable = document.getElementById('timeTable').querySelector('tbody');
-    const reasonButtons = document.getElementById('reasonButtons');
-    const newMotivoInput = document.getElementById('newMotivoInput');
-    const barChartCtx = document.getElementById('chart').getContext('2d');
-    const pieChartCtx = document.getElementById('pieChart').getContext('2d');
-    let barChart, pieChart;
-    let timerInterval;
+    
+    let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
+    let motivos = JSON.parse(localStorage.getItem('motivos')) || []; // Recupera motivos salvos no localStorage
     let elapsedTime = 0;
     let startTime;
+    let timerInterval;
     let currentMotivo = null;
-    let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
 
     function updateTable() {
         timeTable.innerHTML = '';
@@ -117,7 +58,6 @@
             row.insertCell(1).innerText = item.motivo;
             row.insertCell(2).innerText = item.time;
         });
-        updateCharts();
     }
 
     function addMotivoButton(motivo) {
@@ -157,98 +97,30 @@
         currentMotivo = null;
     }
 
-    function updateCharts() {
-        const motivoTimeMap = {};
-        dataStorage.forEach(item => {
-            motivoTimeMap[item.motivo] = (motivoTimeMap[item.motivo] || 0) + item.time;
-        });
-        const labels = Object.keys(motivoTimeMap);
-        const data = Object.values(motivoTimeMap);
-
-        if (barChart) barChart.destroy();
-        barChart = new Chart(barChartCtx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Tempo total por motivo (segundos)',
-                    data: data,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Tempo (segundos)' }
-                    },
-                    x: {
-                        title: { display: true, text: 'Motivos' }
-                    }
-                }
-            }
-        });
-
-        // Gráfico de Pizza
-        const total = data.reduce((sum, value) => sum + value, 0);
-        const percentageData = data.map(value => ((value / total) * 100).toFixed(2));
-
-        if (pieChart) pieChart.destroy();
-        pieChart = new Chart(pieChartCtx, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Percentual de Tempo por Motivo',
-                    data: percentageData,
-                    backgroundColor: labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`)
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                return `${context.label}: ${context.raw}%`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     function downloadTable() {
-        let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo (segundos)\n";
-        dataStorage.forEach(item => {
-            csvContent += `${item.date},${item.motivo},${item.time}\n`;
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "time_data.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Função de download do CSV
     }
 
     function clearData() {
         if (confirm("Tem certeza de que deseja limpar todos os dados?")) {
             dataStorage = [];
+            motivos = [];
             localStorage.removeItem('timeData');
+            localStorage.removeItem('motivos'); // Remove motivos do localStorage
             reasonButtons.innerHTML = '';
             updateTable();
-            updateCharts();
         }
     }
 
+    // Carrega motivos salvos ao iniciar a página
+    motivos.forEach(addMotivoButton);
+
     newMotivoInput.addEventListener('keyup', event => {
         if (event.key === 'Enter' && newMotivoInput.value) {
-            addMotivoButton(newMotivoInput.value);
+            const motivo = newMotivoInput.value;
+            addMotivoButton(motivo);
+            motivos.push(motivo); // Adiciona novo motivo à lista
+            localStorage.setItem('motivos', JSON.stringify(motivos)); // Salva motivos no localStorage
             newMotivoInput.value = '';
         }
     });
