@@ -42,7 +42,7 @@
             border: 1px solid #ddd;
             padding: 8px;
         }
-        .download-btn {
+        .download-btn, .clear-btn {
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
@@ -52,6 +52,7 @@
             font-size: 16px;
             margin-top: 10px;
         }
+        .clear-btn { background-color: #dc3545; }
         #chart { max-width: 100%; height: 300px; }
     </style>
 </head>
@@ -76,6 +77,7 @@
         <tbody></tbody>
     </table>
     <button class="download-btn" onclick="downloadTable()">Baixar Tabela</button>
+    <button class="clear-btn" onclick="clearData()">Limpar</button>
     <div class="chart-container">
         <canvas id="chart"></canvas>
     </div>
@@ -184,6 +186,17 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    function clearData() {
+        if (confirm("Tem certeza de que deseja limpar todos os dados?")) {
+            dataStorage = [];
+            localStorage.removeItem('timeData');
+            updateTable();
+            updateChart();
+            timerDisplay.textContent = '00:00';
+            motivoInput.value = '';
+        }
     }
 
     startButton.addEventListener('click', startTimer);
