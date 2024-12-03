@@ -39,8 +39,7 @@
             border-radius: 5px;
             color: white;
         }
-        #startButton { background-color: green; }
-        #stopButton { background-color: red; display: none; }
+        .controls button.stop-button { background-color: red; }
         table, th, td {
             border: 1px solid #ddd;
             padding: 8px;
@@ -80,9 +79,6 @@
     <h1>Cronômetro com Gráficos</h1>
     <input type="text" id="newMotivoInput" placeholder="Digite o motivo e pressione Enter" style="margin-top: 10px; padding: 8px; width: 100%;" />
     <div class="reason-buttons" id="reasonButtons"></div>
-    <div class="controls">
-        <button id="stopButton">Parar</button>
-    </div>
     <div id="timerDisplayContainer" style="margin: 15px 0;"></div>
     <table id="timeTable">
         <thead>
@@ -103,7 +99,6 @@
 </div>
 
 <script>
-    const stopButton = document.getElementById('stopButton');
     const timerDisplayContainer = document.getElementById('timerDisplayContainer');
     const timeTable = document.getElementById('timeTable').querySelector('tbody');
     const reasonButtons = document.getElementById('reasonButtons');
@@ -114,6 +109,7 @@
     let timers = {}; // Armazena os cronômetros ativos por motivo
     let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
     let motivosStorage = JSON.parse(localStorage.getItem('motivos')) || [];
+    let stopButtons = {}; // Armazena os botões de stop por motivo
 
     function updateTable() {
         timeTable.innerHTML = '';
@@ -140,8 +136,24 @@
                 startTime: Date.now(),
                 interval: setInterval(() => updateTimerDisplay(motivo), 100)
             };
+
+            // Criar o botão de parar para o motivo específico
+            const stopButton = document.createElement('button');
+            stopButton.textContent = 'Parar';
+            stopButton.classList.add('stop-button');
+            stopButton.onclick = () => stopTimer(motivo, stopButton);
+            stopButtons[motivo] = stopButton;
+
+            // Adicionar o botão "parar" abaixo do cronômetro correspondente
+            const motivoDisplay = document.createElement('div');
+            motivoDisplay.id = `motivo-${motivo}`;
+            motivoDisplay.innerHTML = `
+                <div id="timerDisplay-${motivo}" style="font-size: 24px;"></div>
+                <div>${motivo}</div>
+            `;
+            motivoDisplay.appendChild(stopButton);
+            timerDisplayContainer.appendChild(motivoDisplay);
         }
-        stopButton.style.display = 'inline-block';
     }
 
     function updateTimerDisplay(motivo) {
@@ -151,30 +163,22 @@
         const seconds = Math.floor((timer.elapsedTime / 1000) % 60);
         let display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-        // Cria um novo display para cada cronômetro
-        let timerDisplay = document.getElementById(`timerDisplay-${motivo}`);
-        if (!timerDisplay) {
-            timerDisplay = document.createElement('div');
-            timerDisplay.id = `timerDisplay-${motivo}`;
-            timerDisplay.style.fontSize = '24px';
-            timerDisplay.style.margin = '15px 0';
-            timerDisplayContainer.appendChild(timerDisplay);
+        // Atualiza a exibição do cronômetro correspondente
+        const timerDisplay = document.getElementById(`timerDisplay-${motivo}`);
+        if (timerDisplay) {
+            timerDisplay.textContent = display;
         }
-        timerDisplay.textContent = display;
     }
 
-    function stopTimer() {
-        clearInterval(timers[currentMotivo].interval);
-        const timeInSeconds = Math.floor(timers[currentMotivo].elapsedTime / 1000);
+    function stopTimer(motivo, stopButton) {
+        clearInterval(timers[motivo].interval);
+        const timeInSeconds = Math.floor(timers[motivo].elapsedTime / 1000);
         const date = new Date().toLocaleString();
-        if (currentMotivo) {
-            dataStorage.push({ date, motivo: currentMotivo, time: timeInSeconds });
-            localStorage.setItem('timeData', JSON.stringify(dataStorage));
-            timers[currentMotivo] = null;  // Limpa o cronômetro
-            updateTable();
-        }
-        stopButton.style.display = 'none';
-        currentMotivo = null;
+        dataStorage.push({ date, motivo, time: timeInSeconds });
+        localStorage.setItem('timeData', JSON.stringify(dataStorage));
+        timers[motivo] = null;  // Limpa o cronômetro
+        stopButton.disabled = true; // Desativa o botão de "parar"
+        updateTable();
     }
 
     function updateCharts() {
@@ -224,13 +228,9 @@
                 datasets: [{
                     label: 'Percentual de Tempo por Motivo',
                     data: percentageData,
-                    backgroundColor: labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`),
-                    borderColor: '#fff',
-                    borderWidth: 2
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#C9CBCF'],
+                    hoverOffset: 4
                 }]
-            },
-            options: {
-                responsive: true
             }
         });
     }
