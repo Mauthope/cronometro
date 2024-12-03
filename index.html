@@ -24,8 +24,8 @@
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             text-align: center;
-            overflow-y: auto; /* Habilita rolagem interna */
-            max-height: 90vh; /* Define a altura máxima do contêiner */
+            overflow-y: auto;
+            max-height: 90vh;
         }
         .controls, .chart-container, .reason-buttons {
             margin-top: 20px;
@@ -83,7 +83,7 @@
     <div class="controls">
         <button id="stopButton">Parar</button>
     </div>
-    <div id="timerDisplay" style="font-size: 24px; margin: 15px 0;">00:00</div>
+    <div id="timerDisplayContainer" style="margin: 15px 0;"></div>
     <table id="timeTable">
         <thead>
             <tr>
@@ -104,17 +104,14 @@
 
 <script>
     const stopButton = document.getElementById('stopButton');
-    const timerDisplay = document.getElementById('timerDisplay');
+    const timerDisplayContainer = document.getElementById('timerDisplayContainer');
     const timeTable = document.getElementById('timeTable').querySelector('tbody');
     const reasonButtons = document.getElementById('reasonButtons');
     const newMotivoInput = document.getElementById('newMotivoInput');
     const barChartCtx = document.getElementById('chart').getContext('2d');
     const pieChartCtx = document.getElementById('pieChart').getContext('2d');
     let barChart, pieChart;
-    let timerInterval;
-    let elapsedTime = 0;
-    let startTime;
-    let currentMotivo = null;
+    let timers = {}; // Armazena os cronômetros ativos por motivo
     let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
     let motivosStorage = JSON.parse(localStorage.getItem('motivos')) || [];
 
@@ -137,29 +134,43 @@
     }
 
     function startTimer(motivo) {
-        if (timerInterval) clearInterval(timerInterval);
-        currentMotivo = motivo;
-        startTime = Date.now() - elapsedTime;
-        timerInterval = setInterval(updateTimerDisplay, 100);
+        if (!timers[motivo]) {
+            timers[motivo] = {
+                elapsedTime: 0,
+                startTime: Date.now(),
+                interval: setInterval(() => updateTimerDisplay(motivo), 100)
+            };
+        }
         stopButton.style.display = 'inline-block';
     }
 
-    function updateTimerDisplay() {
-        elapsedTime = Date.now() - startTime;
-        const minutes = Math.floor((elapsedTime / 1000) / 60);
-        const seconds = Math.floor((elapsedTime / 1000) % 60);
-        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    function updateTimerDisplay(motivo) {
+        const timer = timers[motivo];
+        timer.elapsedTime = Date.now() - timer.startTime;
+        const minutes = Math.floor((timer.elapsedTime / 1000) / 60);
+        const seconds = Math.floor((timer.elapsedTime / 1000) % 60);
+        let display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        // Cria um novo display para cada cronômetro
+        let timerDisplay = document.getElementById(`timerDisplay-${motivo}`);
+        if (!timerDisplay) {
+            timerDisplay = document.createElement('div');
+            timerDisplay.id = `timerDisplay-${motivo}`;
+            timerDisplay.style.fontSize = '24px';
+            timerDisplay.style.margin = '15px 0';
+            timerDisplayContainer.appendChild(timerDisplay);
+        }
+        timerDisplay.textContent = display;
     }
 
     function stopTimer() {
-        clearInterval(timerInterval);
-        const timeInSeconds = Math.floor(elapsedTime / 1000);
+        clearInterval(timers[currentMotivo].interval);
+        const timeInSeconds = Math.floor(timers[currentMotivo].elapsedTime / 1000);
         const date = new Date().toLocaleString();
         if (currentMotivo) {
             dataStorage.push({ date, motivo: currentMotivo, time: timeInSeconds });
             localStorage.setItem('timeData', JSON.stringify(dataStorage));
-            elapsedTime = 0;
-            timerDisplay.textContent = '00:00';
+            timers[currentMotivo] = null;  // Limpa o cronômetro
             updateTable();
         }
         stopButton.style.display = 'none';
@@ -213,61 +224,47 @@
                 datasets: [{
                     label: 'Percentual de Tempo por Motivo',
                     data: percentageData,
-                    backgroundColor: labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`)
+                    backgroundColor: labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`),
+                    borderColor: '#fff',
+                    borderWidth: 2
                 }]
             },
             options: {
-                responsive: true,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                return `${context.label}: ${context.raw}%`;
-                            }
-                        }
-                    }
-                }
+                responsive: true
             }
         });
     }
 
     function downloadTable() {
-        let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo (segundos)\n";
-        dataStorage.forEach(item => {
-            csvContent += `${item.date},${item.motivo},${item.time}\n`;
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "time_data.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const csv = dataStorage.map(item => `${item.date},${item.motivo},${item.time}`).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'time_data.csv';
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     function clearData() {
         dataStorage = [];
-        motivosStorage = [];
-        localStorage.clear();
+        localStorage.removeItem('timeData');
         updateTable();
-        reasonButtons.innerHTML = '';
     }
 
-    newMotivoInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const motivo = newMotivoInput.value.trim();
-            if (motivo && !motivosStorage.includes(motivo)) {
-                motivosStorage.push(motivo);
-                localStorage.setItem('motivos', JSON.stringify(motivosStorage));
-                addMotivoButton(motivo);
-                newMotivoInput.value = '';
-            }
+    newMotivoInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && newMotivoInput.value.trim() !== '') {
+            addMotivoButton(newMotivoInput.value.trim());
+            motivosStorage.push(newMotivoInput.value.trim());
+            localStorage.setItem('motivos', JSON.stringify(motivosStorage));
+            newMotivoInput.value = '';
         }
     });
 
-    motivosStorage.forEach(motivo => addMotivoButton(motivo));
+    // Inicializa com os motivos armazenados
+    motivosStorage.forEach(addMotivoButton);
+
     updateTable();
-    stopButton.addEventListener('click', stopTimer);
 </script>
 
 </body>
