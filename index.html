@@ -39,22 +39,20 @@
             border-radius: 5px;
             color: white;
         }
-.controls button.stop-button { 
-    background-color: #dc3545; 
-    border-radius: 20px; /* Mais arredondado */
-    padding: 12px 24px;
-    font-size: 18px;
-    margin-top: 10px;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.controls button.stop-button:hover {
-    background-color: #c82333; /* Cor vermelha mais escura ao passar o mouse */
-}
-
+        .controls button.stop-button { 
+            background-color: #dc3545; 
+            border-radius: 20px;
+            padding: 12px 24px;
+            font-size: 18px;
+            margin-top: 10px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .controls button.stop-button:hover {
+            background-color: #c82333; 
+        }
         table, th, td {
             border: 1px solid #ddd;
             padding: 8px;
@@ -173,7 +171,6 @@
                 interval: setInterval(() => updateTimerDisplay(motivo), 100)
             };
 
-            // Adicionar a exibição do cronômetro e o botão "Parar"
             const motivoDisplay = document.createElement('div');
             motivoDisplay.classList.add('timer-box');
             motivoDisplay.id = `motivo-${motivo}`;
@@ -193,7 +190,6 @@
         const seconds = Math.floor((timer.elapsedTime / 1000) % 60);
         let display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-        // Atualiza a exibição do cronômetro correspondente
         const timerDisplay = document.getElementById(`timerDisplay-${motivo}`);
         if (timerDisplay) {
             timerDisplay.textContent = display;
@@ -206,9 +202,8 @@
         const date = new Date().toLocaleString();
         dataStorage.push({ date, motivo, time: timeInSeconds });
         localStorage.setItem('timeData', JSON.stringify(dataStorage));
-        timers[motivo] = null;  // Limpa o cronômetro
+        timers[motivo] = null;
 
-        // Remove a exibição do cronômetro e o botão "Parar"
         const motivoDisplay = document.getElementById(`motivo-${motivo}`);
         if (motivoDisplay) {
             motivoDisplay.remove();
@@ -253,7 +248,7 @@
                 labels: labels,
                 datasets: [{
                     data: data,
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF9F40', '#C9CBCF'],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40'],
                     hoverOffset: 4
                 }]
             }
@@ -261,35 +256,45 @@
     }
 
     function downloadTable() {
-        const csv = dataStorage.map(item => `${item.date},${item.motivo},${item.time}`).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'time_data.csv';
-        a.click();
-        URL.revokeObjectURL(url);
+        let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo\n";
+        dataStorage.forEach(item => {
+            csvContent += `${item.date},${item.motivo},${item.time}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'cronometro.csv');
+        link.click();
     }
 
     function clearData() {
         dataStorage = [];
+        motivosStorage = [];
         localStorage.removeItem('timeData');
+        localStorage.removeItem('motivos');
+        timers = {};
+
+        timerDisplayContainer.innerHTML = '';
+        reasonButtons.innerHTML = '';
         updateTable();
     }
 
-    newMotivoInput.addEventListener('keypress', function(e) {
+    newMotivoInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && newMotivoInput.value.trim() !== '') {
-            addMotivoButton(newMotivoInput.value.trim());
-            motivosStorage.push(newMotivoInput.value.trim());
-            localStorage.setItem('motivos', JSON.stringify(motivosStorage));
+            const motivo = newMotivoInput.value.trim();
+            if (!motivosStorage.includes(motivo)) {
+                motivosStorage.push(motivo);
+                localStorage.setItem('motivos', JSON.stringify(motivosStorage));
+                addMotivoButton(motivo);
+            }
             newMotivoInput.value = '';
         }
     });
 
-    // Inicializa com os motivos armazenados
+    // Inicializa com os motivos e dados do localStorage
     motivosStorage.forEach(addMotivoButton);
-
     updateTable();
+
 </script>
 
 </body>
