@@ -255,17 +255,18 @@
         });
     }
 
-    function downloadTable() {
-        let csvContent = "data:text/csv;charset=utf-8,Data,Motivo,Tempo\n";
-        dataStorage.forEach(item => {
-            csvContent += `${item.date},${item.motivo},${item.time}\n`;
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', 'cronometro.csv');
-        link.click();
-    }
+   function downloadTable() {
+    let csvContent = "data:text/csv;charset=utf-8,Data e Hora,Motivo,Tempo\n";
+    dataStorage.forEach(item => {
+        const dateTime = item.date; // Data e hora já estão no formato desejado
+        csvContent += `${dateTime},${item.motivo},${item.time}\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'cronometro.csv');
+    link.click();
+}
 
     function clearData() {
         dataStorage = [];
