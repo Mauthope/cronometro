@@ -109,7 +109,6 @@
     let timers = {}; // Armazena os cronômetros ativos por motivo
     let dataStorage = JSON.parse(localStorage.getItem('timeData')) || [];
     let motivosStorage = JSON.parse(localStorage.getItem('motivos')) || [];
-    let stopButtons = {}; // Armazena os botões de stop por motivo
 
     function updateTable() {
         timeTable.innerHTML = '';
@@ -137,21 +136,14 @@
                 interval: setInterval(() => updateTimerDisplay(motivo), 100)
             };
 
-            // Criar o botão de parar para o motivo específico
-            const stopButton = document.createElement('button');
-            stopButton.textContent = 'Parar';
-            stopButton.classList.add('stop-button');
-            stopButton.onclick = () => stopTimer(motivo, stopButton);
-            stopButtons[motivo] = stopButton;
-
-            // Adicionar o botão "parar" abaixo do cronômetro correspondente
+            // Adicionar a exibição do cronômetro e o botão "Parar"
             const motivoDisplay = document.createElement('div');
             motivoDisplay.id = `motivo-${motivo}`;
             motivoDisplay.innerHTML = `
-                <div id="timerDisplay-${motivo}" style="font-size: 24px;"></div>
+                <div id="timerDisplay-${motivo}" style="font-size: 24px;">00:00</div>
                 <div>${motivo}</div>
+                <button class="stop-button" onclick="stopTimer('${motivo}')">Parar</button>
             `;
-            motivoDisplay.appendChild(stopButton);
             timerDisplayContainer.appendChild(motivoDisplay);
         }
     }
@@ -170,14 +162,20 @@
         }
     }
 
-    function stopTimer(motivo, stopButton) {
+    function stopTimer(motivo) {
         clearInterval(timers[motivo].interval);
         const timeInSeconds = Math.floor(timers[motivo].elapsedTime / 1000);
         const date = new Date().toLocaleString();
         dataStorage.push({ date, motivo, time: timeInSeconds });
         localStorage.setItem('timeData', JSON.stringify(dataStorage));
         timers[motivo] = null;  // Limpa o cronômetro
-        stopButton.disabled = true; // Desativa o botão de "parar"
+
+        // Remove a exibição do cronômetro e o botão "Parar"
+        const motivoDisplay = document.getElementById(`motivo-${motivo}`);
+        if (motivoDisplay) {
+            motivoDisplay.remove();
+        }
+
         updateTable();
     }
 
