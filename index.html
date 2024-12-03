@@ -39,19 +39,22 @@
             border-radius: 5px;
             color: white;
         }
-        .controls button.stop-button { background-color: #dc3545; }
-        #chart, #pieChart { max-width: 100%; height: 300px; margin-top: 20px; }
-        .reason-buttons button {
-            margin: 5px;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-             }
-        }
+.controls button.stop-button { 
+    background-color: #dc3545; 
+    border-radius: 20px; /* Mais arredondado */
+    padding: 12px 24px;
+    font-size: 18px;
+    margin-top: 10px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.controls button.stop-button:hover {
+    background-color: #c82333; /* Cor vermelha mais escura ao passar o mouse */
+}
+
         table, th, td {
             border: 1px solid #ddd;
             padding: 8px;
